@@ -43,7 +43,9 @@ p_lsq9 = fitting(M=9)
 
 regularization = 0.00001
 
-# 正则化
+# =============================================================================
+# 正则化，对比了多项此9次方项的拟合和正则化
+# =============================================================================
 def residuals_func_regularization(p,x,y):
     ret = fit_func(p,x) - y
     ret = np.append(ret, np.sqrt(0.5*regularization*np.square(p)))
