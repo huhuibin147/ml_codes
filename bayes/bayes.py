@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Sep  6 20:19:02 2018
-
-@author: inter
-"""
 
 import numpy as np
 import jieba

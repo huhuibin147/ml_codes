@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 10 14:12:36 2019 
-
-@author: inter
-"""
 
 import numpy as np
 from scipy.optimize import leastsq
