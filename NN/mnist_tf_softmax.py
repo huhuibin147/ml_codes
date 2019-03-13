@@ -42,13 +42,16 @@ init = tf.global_variables_initializer()
 
 saver = tf.train.Saver(max_to_keep=1)
 
-epoches = 10000
+epoches = 200
+batch_size = 100
+n_batch = mnist_data.train.num_examples // batch_size
 with tf.Session() as sess:
     sess.run(init)
     for epoch in range(epoches):
-        batch_xs, batch_ys = mnist_data.train.next_batch(100)
-        sess.run(optimizer, feed_dict={x: batch_xs, y_: batch_ys})
-        if epoch % 100 == 0:
+        for batch in range(n_batch):
+            batch_xs, batch_ys = mnist_data.train.next_batch(batch_size)
+            sess.run(optimizer, feed_dict={x: batch_xs, y_: batch_ys})
+        if epoch % 1 == 0:
             print('epoch:%s,acc:%s' % (epoch, sess.run(accuracy, 
                 feed_dict={x: mnist_data.test.images, y_: mnist_data.test.labels})))
     saver.save(sess, './ckpt/mnist.ckpt')
