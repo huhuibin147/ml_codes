@@ -71,7 +71,7 @@ def score(X_test, y_test):
 score(X_test, y_test)
 
 test_point = [6.0, 3.0]
-predict(test_point)
+print(predict(test_point))
 
 
 plt.scatter(df[:50]['sepal length'], df[:50]['sepal width'], label='0')
