@@ -32,7 +32,7 @@ init = tf.global_variables_initializer()
 saver = tf.train.Saver(max_to_keep=1)
 
 
-epoches = 300
+epoches = 400
 batch_size = 100
 n_batch = mnist_data.train.num_examples // batch_size
 

@@ -22,6 +22,7 @@ def init_bias(shape):
     return tf.Variable(initial)
 
 def conv2d(x, W):
+    # SAME算法 new_height = new_width = W / S （结果向上取整）
     return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding='SAME')
 
 def max_pool_2x2(x):
@@ -69,13 +70,21 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 sess.run(tf.global_variables_initializer())
 
-for i in range(2000):
-    batch = mnist.train.next_batch(50)
-    if i % 100 == 0:
-        train_accuacy = accuracy.eval(feed_dict={x:batch[0],y_:batch[1],keep_prob:1.0})
-        print("step %d, training accuracy %g"%(i, train_accuacy))
-    
-    optimizer.run(feed_dict={x:batch[0],y_:batch[1],keep_prob:0.5})
+epoches = 400
+batch_size = 1000
+n_batch = mnist.train.num_examples // batch_size
+
+for i in range(epoches):
+    for epoch in range(epoches):
+        print ('epoch', epoch)
+        for batch in range(n_batch):
+            print ('batch', batch)
+            batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+            optimizer.run(feed_dict={x:batch_xs,y_:batch_ys,keep_prob:0.5})
+        if i % 1 == 0:
+            train_accuacy = accuracy.eval(feed_dict={x:mnist.test.images,
+                                          y_:mnist.test.labels,keep_prob:1.0})
+            print("step %d, training accuracy %g"%(i, train_accuacy))
 
 print("test accuracy %g"%(accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})))
 
