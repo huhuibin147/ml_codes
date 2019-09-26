@@ -69,7 +69,7 @@ def prediction(n=0):
     y_r = isess.run(y, feed_dict={x: [test_img]})
     print('prediction:%s' % (np.argmax(y_r,1)[0]))
 
-prediction(133)
+prediction(344)
 
 
 

@@ -70,7 +70,7 @@ def score(X_test, y_test):
 
 score(X_test, y_test)
 
-test_point = [6.0, 3.0]
+test_point = [4.6, 2.3]
 print(predict(test_point))
 
 

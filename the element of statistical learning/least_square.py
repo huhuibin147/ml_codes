@@ -30,7 +30,7 @@ def fitting(M=0):
     print('Fitting Parameters:', p_lsq[0])
 
     plt.plot(x_points,real_func(x_points),label='real')
-#    plt.plot(x_points,fit_func(p_lsq[0],x_points),label='fitted curve')
+    plt.plot(x_points,fit_func(p_lsq[0],x_points),label='fitted curve')
     plt.plot(x,y,'bo',label='noise')
     plt.legend()
     return p_lsq
@@ -39,6 +39,7 @@ def fitting(M=0):
 p_lsq0 = fitting(M=0)
 p_lsq1 = fitting(M=1)
 p_lsq3 = fitting(M=3)
+p_lsq3 = fitting(M=5)
 p_lsq9 = fitting(M=9)
 
 regularization = 0.00001

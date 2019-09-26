@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -10,17 +9,9 @@ import os
 os.chdir("D:/machinelearning/codes/ml_learning/NN/")
 os.getcwd()
 
-MNIST_DATA_DIR = "D:/machinelearning/MNIST/MNIST_data/"
 
-mnist = input_data.read_data_sets(MNIST_DATA_DIR, one_hot=True)
 
-dir(mnist.train)
-mnist.train.images.shape
-mnist.train.labels.shape
-mnist.train.next_batch(2)
-
-#sess = tf.InteractiveSession()
-
+tf.reset_default_graph()
 
 
 def init_weight(shape, name):
@@ -42,7 +33,7 @@ def max_pool_2x2(x):
 x = tf.placeholder(tf.float32, [None, 784], name='x')
 x_image = tf.reshape(x, [-1,28,28,1])
 
-w_conv1 = init_weight([7,7,1,32], name='w1')
+w_conv1 = init_weight([5,5,1,32], name='w1')
 b_conv1 = init_bias([32], name='b1')
 
 h_conv1 = tf.nn.relu(conv2d(x_image, w_conv1)+b_conv1)
@@ -68,41 +59,6 @@ w_fc2 = init_weight([1024, 10], name='wfc2')
 b_fc2 = init_bias([10], name='bfc2')
 
 y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, w_fc2)+b_fc2, name='yconv')
-y_ = tf.placeholder(tf.float32, [None, 10])
-
-
-cross_entropy = -tf.reduce_mean(y_*tf.log(y_conv))
-optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-
-
-correct_prediction = tf.equal(tf.arg_max(y_conv,1), tf.arg_max(y_,1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-#sess.run(tf.global_variables_initializer())
-
-epoches = 50
-batch_size = 1024
-n_batch = mnist.train.num_examples // batch_size
-
-
-init = tf.global_variables_initializer()
-saver = tf.train.Saver()
-
-with tf.Session() as sess:
-    sess.run(init)
-    print('init suc...')
-    for i in range(epoches):
-        for batch in range(n_batch):
-            print('train batch:', batch)
-            batch_xs, batch_ys = mnist.train.next_batch(batch_size)
-            optimizer.run(feed_dict={x:batch_xs,y_:batch_ys,keep_prob:0.5})
-        if i % 1 == 0:
-            train_accuacy = accuracy.eval(feed_dict={x:mnist.test.images,
-                                          y_:mnist.test.labels,keep_prob:1.0})
-            print("epoch:%s,acc:%s"%(i, train_accuacy))
-    saver.save(sess, './cnn/cnn_mnist')
-
-#    print("test accuracy %g"%(accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})))
 
 
 def show_img(image, label=''):
@@ -123,8 +79,8 @@ def prediction2(sess, im_arr):
 #    show_img(im_arr)
     y_r = sess.run(y_conv, feed_dict={x: im_arr, keep_prob: 1.0})
     r = np.argmax(y_r,1)[0]
-    print('y_r:%s' % y_r)
-    print('prediction:%s' % r)
+#    print('y_r:%s' % y_r)
+#    print('prediction:%s' % r)
     return r
 
     
@@ -133,28 +89,32 @@ def prediction2(sess, im_arr):
 
 #show_img(mnist.train.images[7])
 
-#saver = tf.train.Saver()
+saver = tf.train.Saver()
 
 with tf.Session() as sess: 
-    model = tf.train.latest_checkpoint('./ckpt_cnn')
-    saver.restore(sess, model)
+#    model = tf.train.latest_checkpoint('./ckpt_cnn')
+#    saver.restore(sess, model)
+    saver.restore(sess, './cnn_s/cnn_mnist')
 #    prediction2(sess, mnist.train.images[7].reshape(1,784))
     
 #    ns = ['l1c1','l1c2','l2c1','l2c2','l3c1','l3c2','l3c3',
 #              'l3c4','l3c5','l3c6']
-    ns = ['pls168','pls239','pls315','plw168','plw239','plw315',
-          'plw387','plw461']
-    plt.figure(figsize=(10,5))
+#    ns = ['pls168','pls239','pls315','plw168','plw239','plw315',
+#          'plw387','plw461']
+    f = 0
+    s = 100
+    ns = ['%s.%s' % (f, i+s) for i in range(20)]
+    plt.figure(figsize=(10,7))
     for i, n in enumerate(ns):
-#        image = Image.open('./cv/sd/%s.jpg' % n)
-        image = Image.open('./cv/test/%s.jpg' % n)
+        image = Image.open('./numdata/data/%s.jpg' % n)
+#        image = Image.open('./cv/test/%s.jpg' % n)
         image_arr = np.array(image.resize((28,28)))
         #image_arr.shape
         #image_arr / 255
         im_arr = image_arr.reshape((1,784)) / 255
-        im_arr[im_arr<0.5] = 0
+        im_arr[im_arr<0.8] = 0
         
-        plt.subplot(2,5,i+1)
+        plt.subplot(4,5,i+1)
         image_reshape = im_arr.reshape(28,28)
         img_0 = Image.fromarray(image_reshape*255)
         plt.xticks([])
@@ -166,3 +126,35 @@ with tf.Session() as sess:
     plt.show()
         
 
+#data_dir = 'D:/machinelearning/codes/ml_learning/NN/numdata/data/'
+#files = os.listdir(data_dir)
+#
+#cnt = 0
+#errors = []
+#with tf.Session() as sess: 
+#    saver.restore(sess, './cnn_s/cnn_mnist')
+#    
+#    
+#    ns = files
+#    for i, n in enumerate(ns):
+#        image = Image.open('./numdata/data/%s' % n)
+#        image_arr = np.array(image.resize((28,28)))
+#        #image_arr.shape
+#        #image_arr / 255
+#        im_arr = image_arr.reshape((1,784)) / 255
+#        im_arr[im_arr<0.8] = 0
+#        
+#        r = prediction2(sess, im_arr)
+#        if int(r) == int(n[0]):
+#            cnt += 1
+#        else:
+#            errors.append(n)
+#    p = cnt / len(files)
+#    print('正确率:', p)
+#    print('错误数:', len(errors))
+#        
+#err = {}
+#for e in errors:
+#    if e[0] not in err:
+#        err[e[0]] = 0
+#    err[e[0]] += 1

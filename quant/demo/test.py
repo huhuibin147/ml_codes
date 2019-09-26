@@ -3,7 +3,7 @@
 if __name__ == '__main__':
     import jqsdk
     params = {
-        'token':'c767fdeaa9ab2c6446fc0ce3a7153287',
+        'token':'0afca35a9a00a208884972a5e93e2530',
         'algorithmId':6,
         'baseCapital':1000000,
         'frequency':'day',
