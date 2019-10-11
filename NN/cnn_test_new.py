@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import copy
 import tensorflow as tf
 import numpy as np
 from PIL import Image
@@ -83,78 +83,224 @@ def prediction2(sess, im_arr):
 #    print('prediction:%s' % r)
     return r
 
-    
+#img_offset(n='3.34')
+
+def num_offs(image_reshape):
+    # 数字居中
+    raw_img = copy.deepcopy(image_reshape)
+    try:
+        cx = np.array([sum(image_reshape[:, ii]) for ii in range(28)])
+        cx_e = np.argwhere(cx>0)
+        
+        cx_l = []
+        cx_i = 0
+        for x in cx_e:
+            # 按序列切割
+            if not cx_l:
+                cx_l.append(x[0])
+            else:
+                if x[0] != (cx_l[cx_i] + 1):
+                    cx_l.append(0)
+                    cx_l.append(x[0])
+                    cx_i += 2
+                else:
+                    cx_l.append(x[0])
+                    cx_i += 1
+        cx_d = []
+        cx_t = []
+        cx_ti = []
+        for x in cx_l:
+            if x != 0:
+                cx_t.append(x)
+            else:
+                cx_d.append(cx_t)
+                cx_ti.append(len(cx_t))
+                cx_t = []
+            if x == cx_l[-1]:
+                cx_d.append(cx_t)
+                cx_ti.append(len(cx_t))
+                cx_t = []
+        
+        # 中间断层
+        max_idx = cx_ti.index(max(cx_ti))
+        num_idx = cx_d[max_idx]
+        if (max_idx-1) >= 0 and len(cx_d[max_idx-1]) > 2:
+            num_idx = cx_d[max_idx-1] + num_idx
+        if (max_idx+1) <= len(cx_d)-1 and len(cx_d[max_idx+1]) > 2:
+            num_idx = num_idx + cx_d[max_idx+1]
+        
+    #    print(num_idx)
+        left_n = num_idx[0] - 0
+        right_n = 27 - num_idx[-1]
+        offs = int((left_n + right_n) / 2 - left_n)
+    #    print(offs)
+        if offs > 0:
+            for i in range(27, -1, -1):
+                # 填充
+                if i >= offs:
+                    image_reshape[:, i] = image_reshape[:, i-offs]
+                else:
+                    image_reshape[:, i] = 0
+        elif offs < 0:
+            for i in range(0, 28, 1):
+                if i >= (28 + offs):
+                    image_reshape[:, i] = 0
+                else:
+                    image_reshape[:, i] = image_reshape[:, i-offs]
+        return image_reshape
+    except Exception as e:
+        print(e)
+    return raw_img
     
 #mnist.test.images[344]
 
 #show_img(mnist.train.images[7])
 
+
+
 saver = tf.train.Saver()
 
-with tf.Session() as sess: 
-#    model = tf.train.latest_checkpoint('./ckpt_cnn')
-#    saver.restore(sess, model)
-    saver.restore(sess, './cnn_s/cnn_mnist')
-#    prediction2(sess, mnist.train.images[7].reshape(1,784))
-    
-#    ns = ['l1c1','l1c2','l2c1','l2c2','l3c1','l3c2','l3c3',
-#              'l3c4','l3c5','l3c6']
-#    ns = ['pls168','pls239','pls315','plw168','plw239','plw315',
-#          'plw387','plw461']
-    f = 0
-    s = 100
-    ns = ['%s.%s' % (f, i+s) for i in range(20)]
-    plt.figure(figsize=(10,7))
-    for i, n in enumerate(ns):
-        image = Image.open('./numdata/data/%s.jpg' % n)
-#        image = Image.open('./cv/test/%s.jpg' % n)
-        image_arr = np.array(image.resize((28,28)))
-        #image_arr.shape
-        #image_arr / 255
-        im_arr = image_arr.reshape((1,784)) / 255
-        im_arr[im_arr<0.8] = 0
+def test():
+    with tf.Session() as sess: 
+    #    model = tf.train.latest_checkpoint('./ckpt_cnn')
+    #    saver.restore(sess, model)
+        saver.restore(sess, './cnn_s3/cnn_mnist')
+    #    prediction2(sess, mnist.train.images[7].reshape(1,784))
         
-        plt.subplot(4,5,i+1)
-        image_reshape = im_arr.reshape(28,28)
-        img_0 = Image.fromarray(image_reshape*255)
-        plt.xticks([])
-        plt.yticks([])
-        plt.grid(False)
-        plt.imshow(img_0)
-        r = prediction2(sess, im_arr)
-        plt.xlabel('%s(%s)' % (r, int(np.sum(im_arr))))
-    plt.show()
+    #    ns = ['l1c1','l1c2','l2c1','l2c2','l3c1','l3c2','l3c3',
+    #              'l3c4','l3c5','l3c6']
+    #    ns = ['pls168','pls239','pls315','plw168','plw239','plw315',
+    #          'plw387','plw461']
+        f = 0
+        s = 720
+        ns = ['%s.%s' % (f, i+s) for i in range(20)]
+        plt.figure(figsize=(10,7))
+        for i, n in enumerate(ns):
+            image = Image.open('./numdata/data/%s.jpg' % n)
+    #        image = Image.open('./cv/test/%s.jpg' % n)
+            image_arr = np.array(image.resize((28,28)))
+            #image_arr.shape
+            #image_arr / 255
+            
+            im_arr = image_arr.reshape((1,784)) / 255
+            im_arr[im_arr<0.8] = 0
+            
+            # 二值化
+#            im_arr = image_arr.reshape((1,784))
+#            maximum = max(map(max, im_arr))
+#            mininum = min(map(min, im_arr))
+#            im_arr = (im_arr - mininum) * (255.0 / maximum)
+#            im_arr[im_arr < 255 * 0.5] = 0
+#            im_arr[im_arr != 0] = 1
+            
+            plt.subplot(4,5,i+1)
+            image_reshape = im_arr.reshape((28,28))
+            image_reshape = num_offs(image_reshape)
+            img_0 = Image.fromarray(image_reshape*255)
+            plt.xticks([])
+            plt.yticks([])
+            plt.grid(False)
+            plt.imshow(img_0)
+            r = prediction2(sess, im_arr)
+            plt.xlabel('%s(%s)' % (r, int(np.sum(im_arr))))
+        plt.show()
         
 
-#data_dir = 'D:/machinelearning/codes/ml_learning/NN/numdata/data/'
-#files = os.listdir(data_dir)
-#
-#cnt = 0
-#errors = []
-#with tf.Session() as sess: 
-#    saver.restore(sess, './cnn_s/cnn_mnist')
-#    
-#    
-#    ns = files
-#    for i, n in enumerate(ns):
-#        image = Image.open('./numdata/data/%s' % n)
-#        image_arr = np.array(image.resize((28,28)))
-#        #image_arr.shape
-#        #image_arr / 255
-#        im_arr = image_arr.reshape((1,784)) / 255
-#        im_arr[im_arr<0.8] = 0
-#        
-#        r = prediction2(sess, im_arr)
-#        if int(r) == int(n[0]):
-#            cnt += 1
-#        else:
-#            errors.append(n)
-#    p = cnt / len(files)
-#    print('正确率:', p)
-#    print('错误数:', len(errors))
-#        
-#err = {}
-#for e in errors:
-#    if e[0] not in err:
-#        err[e[0]] = 0
-#    err[e[0]] += 1
+def check_acc():
+    data_dir = 'D:/machinelearning/codes/ml_learning/NN/numdata/data/'
+    files = os.listdir(data_dir)
+    
+    cnt = 0
+    errors = []
+    tt = {i:0 for i in range(10)}
+    error_d = {i:0 for i in range(10)}
+    correct_d = {i:0 for i in range(10)}
+    err_p = {}
+    with tf.Session() as sess: 
+        saver.restore(sess, './cnn_s3/cnn_mnist')
+        
+        
+        ns = files
+        for i, n in enumerate(ns):
+            image = Image.open('./numdata/data/%s' % n)
+            image_arr = np.array(image.resize((28,28)))
+            #image_arr.shape
+            #image_arr / 255
+            
+            im_arr = image_arr.reshape((1,784)) / 255
+            im_arr[im_arr<0.8] = 0
+            
+            image_reshape = im_arr.reshape((28,28))
+            image_reshape = num_offs(image_reshape)
+            im_arr = image_reshape.reshape((1,784))
+            
+            # 二值化
+#            im_arr = image_arr.reshape((1,784))
+#            maximum = max(map(max, im_arr))
+#            mininum = min(map(min, im_arr))
+#            im_arr = (im_arr - mininum) * (255.0 / maximum)
+#            im_arr[im_arr < 255 * 0.5] = 0
+#            im_arr[im_arr != 0] = 1
+            
+            r = int(prediction2(sess, im_arr))
+            raw_n = int(n[0])
+            tt[raw_n] += 1
+            if r == raw_n:
+                cnt += 1
+                correct_d[r] += 1
+            else:
+                errors.append(n)
+                error_d[raw_n] += 1
+        p = cnt / len(files)
+        print('正确率:', p)
+        print('错误数:', len(errors))
+        if len(errors)<10:
+            print(errors)
+        print('总数分布:', tt)
+        print('正确分布:', correct_d)
+        print('错误分布:', error_d)
+        for i in range(10):
+            err_p[i] = round(error_d[i] / tt[i], 2)
+        print('错误率:', err_p)
+        
+    err = {}
+    for e in errors:
+        if e[0] not in err:
+            err[e[0]] = 0
+        err[e[0]] += 1
+        
+#check_acc()
+test()
+
+
+def binarization(img):
+    """二值化"""
+    maximum = max(map(max, img))
+    mininum = min(map(min, img))
+    th_img = (img - mininum) * (255.0 / maximum)
+    th_img = th_img.astype(np.uint8)
+    th_img[th_img < 255 * 0.5] = 0
+    th_img[th_img != 0] = 255
+    return th_img
+
+def img_offset(n='6.112'):
+    image = Image.open('./numdata/data/%s.jpg' % n)
+    #        image = Image.open('./cv/test/%s.jpg' % n)
+    image_arr = np.array(image.resize((28,28)))
+    #image_arr.shape
+    #image_arr / 255
+    
+    im_arr = image_arr.reshape((1,784)) / 255
+    im_arr[im_arr<0.8] = 0
+    
+    plt.subplot(4,5,1)
+    image_reshape = im_arr.reshape(28,28)
+    
+    image_reshape = num_offs(image_reshape)
+            
+    img_0 = Image.fromarray(image_reshape*255)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(False)
+    plt.imshow(img_0)
+    plt.show()
